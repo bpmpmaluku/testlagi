@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Form Data Satuan Pendidikan</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f9fafb;
+      margin: 0;
+      padding: 40px;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-top: 15px;
+      color: #444;
+    }
+    select, input {
+      width: 100%;
+      padding: 10px;
+      font-size: 14px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-top: 5px;
+    }
+    input[readonly] {
+      background: #f1f1f1;
+    }
+    .loading {
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Form Pemilihan Satuan Pendidikan</h2>
+
+    <label for="kabupaten">Kabupaten/Kota:</label>
+    <select id="kabupaten">
+      <option value="">-- Pilih Kabupaten/Kota --</option>
+    </select>
+
+    <label for="jenjang">Jenjang:</label>
+    <select id="jenjang" disabled>
+      <option value="">-- Pilih Jenjang --</option>
+    </select>
+
+    <label for="npsn">NPSN:</label>
+    <select id="npsn" disabled>
+      <option value="">-- Pilih NPSN --</option>
+    </select>
+
+    <label for="namaSekolah">Nama Satuan Pendidikan:</label>
+    <input id="namaSekolah" type="text" readonly placeholder="Akan muncul otomatis">
+
+    <div class="loading" id="loading">Memuat data dari spreadsheet...</div>
+  </div>
+
+  <script>
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTAvhg6FH9qpSHfNzNj_pVM3yoM-Of2Yv62VFsg687P1DPBPosrLH0LWPC1oSdIQfJ3YeZuvbFihUFj/pub?output=csv";
+
+    let data = [];
+    const kabupatenSelect = document.getElementById('kabupaten');
+    const jenjangSelect = document.getElementById('jenjang');
+    const npsnSelect = document.getElementById('npsn');
+    const namaInput = document.getElementById('namaSekolah');
+    const loadingText = document.getElementById('loading');
+
+    // Ambil data dari spreadsheet publik
+    fetch(sheetUrl)
+      .then(res => res.text())
+      .then(csv => {
+        const rows = csv.trim().split('\n').map(r => r.split(','));
+        rows.shift(); // hapus header
+        data = rows.map(r => ({
+          kabupaten: r[0].trim(),
+          jenjang: r[1].trim(),
+          npsn: r[2].trim(),
+          nama: r[3].trim()
+        }));
+        loadingText.style.display = "none";
+
+        // Isi dropdown Kabupaten/Kota
+        const kabList = [...new Set(data.map(d => d.kabupaten))].sort();
+        kabList.forEach(kab => {
+          const opt = document.createElement('option');
+          opt.value = kab;
+          opt.textContent = kab;
+          kabupatenSelect.appendChild(opt);
+        });
+      })
+      .catch(err => {
+        loadingText.textContent = "Gagal memuat data. Pastikan link spreadsheet bisa diakses publik.";
+      });
+
+    // Saat Kabupaten dipilih
+    kabupatenSelect.addEventListener('change', () => {
+      const kab = kabupatenSelect.value;
+      jenjangSelect.innerHTML = '<option value="">-- Pilih Jenjang --</option>';
+      npsnSelect.innerHTML = '<option value="">-- Pilih NPSN --</option>';
+      namaInput.value = '';
+      jenjangSelect.disabled = !kab;
+      npsnSelect.disabled = true;
+
+      if (!kab) return;
+
+      const jenjangList = [...new Set(data.filter(d => d.kabupaten === kab).map(d => d.jenjang))].sort();
+      jenjangList.forEach(j => {
+        const opt = document.createElement('option');
+        opt.value = j;
+        opt.textContent = j;
+        jenjangSelect.appendChild(opt);
+      });
+    });
+
+    // Saat Jenjang dipilih
+    jenjangSelect.addEventListener('change', () => {
+      const kab = kabupatenSelect.value;
+      const jenjang = jenjangSelect.value;
+      npsnSelect.innerHTML = '<option value="">-- Pilih NPSN --</option>';
+      namaInput.value = '';
+      npsnSelect.disabled = !jenjang;
+
+      if (!jenjang) return;
+
+      const npsnList = data.filter(d => d.kabupaten === kab && d.jenjang === jenjang);
+      npsnList.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.npsn;
+        opt.textContent = item.npsn;
+        npsnSelect.appendChild(opt);
+      });
+    });
+
+    // Saat NPSN dipilih
+    npsnSelect.addEventListener('change', () => {
+      const npsn = npsnSelect.value;
+      const sekolah = data.find(d => d.npsn === npsn);
+      namaInput.value = sekolah ? sekolah.nama : '';
+    });
+  </script>
+</body>
+</html>
