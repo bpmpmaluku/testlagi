@@ -566,6 +566,20 @@
             location.reload();
         }
 
+        // Fungsi untuk mengkonversi file ke base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    // Remove data:application/pdf;base64, prefix
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
         // Fungsi untuk menyimpan data progres
         async function saveProgressData() {
             const progressForm = document.getElementById('progressForm');
@@ -590,9 +604,16 @@
                 showProgressMessage('Mohon upload dokumentasi progres bangunan.', 'error');
                 return;
             }
+
+            // Validasi ukuran file
+            const oversizedFiles = Array.from(uploadFoto).filter(file => file.size > 50 * 1024 * 1024);
+            if (oversizedFiles.length > 0) {
+                showProgressMessage(`${oversizedFiles.length} file melebihi batas maksimal 50MB. Mohon kompres atau pilih file yang lebih kecil.`, 'error');
+                return;
+            }
             
             // Tampilkan loading
-            showProgressMessage('Menyimpan data ke spreadsheet...', 'info');
+            showProgressMessage('Memproses file dan menyimpan data ke spreadsheet...', 'info');
             
             try {
                 // Kumpulkan semua data
@@ -603,6 +624,20 @@
                 
                 // Format data menu revitalisasi
                 const menuRevitalisasiText = selectedMenus.map(menu => `${menu.name} (${menu.progress}%)`).join('; ');
+                
+                // Konversi file ke base64
+                showProgressMessage('Mengkonversi file dokumentasi...', 'info');
+                const filePromises = Array.from(uploadFoto).map(async (file) => {
+                    const base64Content = await fileToBase64(file);
+                    return {
+                        name: file.name,
+                        content: base64Content,
+                        mimeType: file.type,
+                        size: file.size
+                    };
+                });
+                
+                const files = await Promise.all(filePromises);
                 
                 // Siapkan data untuk dikirim ke spreadsheet
                 const dataToSave = {
@@ -621,8 +656,11 @@
                     solusi: document.getElementById('solusi').value || '',
                     keterangan: document.getElementById('keterangan').value || '',
                     jumlahFile: uploadFoto.length,
-                    namaFile: Array.from(uploadFoto).map(file => file.name).join('; ')
+                    namaFile: Array.from(uploadFoto).map(file => file.name).join('; '),
+                    files: files
                 };
+                
+                showProgressMessage('Mengirim data ke Google Apps Script...', 'info');
                 
                 // Kirim data ke Google Apps Script
                 // GANTI URL INI dengan Web App URL dari Apps Script Anda
@@ -646,22 +684,46 @@
                 if (currentNPSN && currentSchoolName) {
                     saveSubmissionRecord(currentNPSN, currentSchoolName);
                     
-                    // Simpan juga data lengkap ke localStorage sebagai backup
+                    // Simpan juga data lengkap ke localStorage sebagai backup (tanpa file untuk menghemat space)
+                    const backupData = { ...dataToSave };
+                    delete backupData.files; // Hapus file dari backup localStorage
+                    
                     const allSubmissions = JSON.parse(localStorage.getItem('allSubmissionData') || '[]');
-                    allSubmissions.push(dataToSave);
+                    allSubmissions.push(backupData);
                     localStorage.setItem('allSubmissionData', JSON.stringify(allSubmissions));
                 }
                 
-                showProgressMessage('Data progres berhasil disimpan ke spreadsheet!', 'success');
+                const successMessage = result.filesUploaded > 0 
+                    ? `Data progres berhasil disimpan ke spreadsheet dan ${result.filesUploaded} file dokumentasi berhasil diupload ke Google Drive!`
+                    : 'Data progres berhasil disimpan ke spreadsheet!';
+                
+                showProgressMessage(successMessage, 'success');
                 
                 // Tampilkan informasi tambahan
                 setTimeout(() => {
-                    showProgressMessage(`Data untuk ${currentSchoolName} (NPSN: ${currentNPSN}) telah tersimpan dengan ${selectedMenus.length} menu revitalisasi.`, 'info');
+                    const additionalInfo = result.filesUploaded > 0
+                        ? `Data untuk ${currentSchoolName} (NPSN: ${currentNPSN}) telah tersimpan dengan ${selectedMenus.length} menu revitalisasi dan ${result.filesUploaded} file dokumentasi.`
+                        : `Data untuk ${currentSchoolName} (NPSN: ${currentNPSN}) telah tersimpan dengan ${selectedMenus.length} menu revitalisasi.`;
+                    
+                    showProgressMessage(additionalInfo, 'info');
                 }, 3000);
                 
             } catch (error) {
                 console.error('Error saving data:', error);
-                showProgressMessage('Terjadi kesalahan saat menyimpan data. Data telah disimpan secara lokal sebagai backup.', 'error');
+                
+                let errorMessage = 'Terjadi kesalahan saat menyimpan data.';
+                
+                if (error.message.includes('fetch')) {
+                    errorMessage += ' Periksa koneksi internet dan URL Google Apps Script.';
+                } else if (error.message.includes('file')) {
+                    errorMessage += ' Terjadi masalah saat memproses file dokumentasi.';
+                } else {
+                    errorMessage += ' ' + error.message;
+                }
+                
+                errorMessage += ' Data telah disimpan secara lokal sebagai backup.';
+                
+                showProgressMessage(errorMessage, 'error');
                 
                 // Simpan ke localStorage sebagai backup jika gagal kirim ke spreadsheet
                 const currentNPSN = getCurrentNPSN();
@@ -1023,5 +1085,5 @@
         // Load data saat halaman dimuat
         fetchSchoolData();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9904bf4d70d8a396',t:'MTc2MDc1NjAyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'990537915684b5d8',t:'MTc2MDc2MDk1Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
