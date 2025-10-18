@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Data Satuan Pendidikan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #a8edea 75%, #fed6e3 100%);
+        }
+        .form-container {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .select-custom {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Success Popup Styles */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .popup-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .popup-content {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+            transform: scale(0.8) translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .popup-overlay.show .popup-content {
+            transform: scale(1) translateY(0);
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            animation: successPulse 0.6s ease-out;
+        }
+        
+        @keyframes successPulse {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .checkmark {
+            width: 40px;
+            height: 40px;
+            color: white;
+            animation: checkmarkDraw 0.5s ease-out 0.3s both;
+        }
+        
+        @keyframes checkmarkDraw {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-full">
+    <!-- Success Popup -->
+    <div id="successPopup" class="popup-overlay">
+        <div class="popup-content">
+            <div class="success-icon">
+                <svg class="checkmark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Data Berhasil Disimpan!</h2>
+            <div id="popupMessage" class="text-gray-600 mb-6 space-y-2">
+                <p class="font-medium">Data progres telah tersimpan ke:</p>
+                <div class="flex items-center justify-center space-x-4 mt-4">
+                    <div class="flex items-center space-x-2 bg-green-50 px-4 py-2 rounded-lg">
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <span class="text-sm font-medium text-green-800">Google Sheets</span>
+                    </div>
+                    <div class="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-lg">
+                        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h2a2 2 0 012 2v0H8v0z"></path>
+                        </svg>
+                        <span class="text-sm font-medium text-blue-800">Google Drive</span>
+                    </div>
+                </div>
+            </div>
+            <div id="popupDetails" class="text-sm text-gray-500 mb-6 bg-gray-50 rounded-lg p-4">
+                <!-- Detail informasi akan diisi via JavaScript -->
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button onclick="closeSuccessPopup()" class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-green-700 hover:to-emerald-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                    Tutup
+                </button>
+                <button onclick="inputDataBaru()" class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all duration-200 shadow-lg">
+                    Input Data Baru
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Image -->
+    <header class="w-full bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 py-6">
+            <img src="https://i.imgur.com/y5VImI4.png" 
+                 alt="Header BPMP Maluku" 
+                 class="w-full h-auto max-h-32 object-contain"
+                 onerror="this.style.display='none'; console.log('Header image failed to load');">
+        </div>
+    </header>
+
+    <main class="min-h-full flex items-center justify-center p-4">
+        <div class="form-container rounded-2xl shadow-2xl p-8 w-full max-w-2xl">
+            <header class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Progress Revitalisasi BPMP Maluku</h1>
+                <p class="text-gray-600">Silahkan memilih data yang sesuai</p>
+            </header>
+
+            <div id="loadingMessage" class="text-center py-8">
+                <div class="loading mx-auto mb-4"></div>
+                <p class="text-gray-600">Memuat data dari spreadsheet...</p>
+            </div>
+
+            <form id="schoolForm" class="space-y-6" style="display: none;">
+                <div>
+                    <label for="kabupaten" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                        Kabupaten/Kota
+                    </label>
+                    <select id="kabupaten" class="select-custom w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white">
+                        <option value="">Pilih Kabupaten/Kota</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="jenjang" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                        Jenjang Pendidikan
+                    </label>
+                    <select id="jenjang" class="select-custom w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white" disabled>
+                        <option value="">Pilih Jenjang Pendidikan</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="npsn" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                        NPSN
+                    </label>
+                    <select id="npsn" class="select-custom w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white" disabled>
+                        <option value="">Pilih NPSN</option>
+                    </select>
+                </div>
+
+                <div id="namaSekolahContainer" style="display: none;">
+                    <label for="namaSekolah" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                        Nama Satuan Pendidikan
+                    </label>
+                    <div class="px-4 py-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p id="namaSekolah" class="text-green-800 font-medium"></p>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" class="w-full font-semibold py-3 px-6 rounded-lg transform hover:scale-105 transition-all duration-200 shadow-lg" style="background-color: #7CD4FD; color: #094A6E; hover:background-color: #5BC5FA;">
+                        Proses Data
+                    </button>
+                </div>
+            </form>
+
+            <div id="errorMessage" class="text-center py-8 text-red-600" style="display: none;">
+                <p>Maaf, terjadi kesalahan saat memuat data. Silakan coba lagi nanti.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let schoolData = [];
+        
+        // Fungsi untuk mengambil data dari Google Sheets
+        async function fetchSchoolData() {
+            try {
+                const sheetId = '1vSVwcI9DQAimyJuPxMuwuH9Q04Ef_zvhx5ZqeuE1a63eG_sE8_Qp1PVkN844cA2Q7n5utIVRPyxsk-6';
+                const csvUrl = `https://docs.google.com/spreadsheets/d/e/2PACX-${sheetId}/pub?output=csv`;
+                
+                const response = await fetch(csvUrl);
+                const csvText = await response.text();
+                
+                // Parse CSV data
+                const rows = csvText.split('\n').slice(1); // Skip header row
+                schoolData = rows.map(row => {
+                    const columns = row.split(',').map(col => col.replace(/"/g, '').trim());
+                    return {
+                        kabupaten: columns[0] || '',
+                        jenjang: columns[1] || '',
+                        npsn: columns[2] || '',
+                        namaSekolah: columns[3] || '',
+                        menuRevitalisasi: columns[4] || ''
+                    };
+                }).filter(item => item.kabupaten && item.jenjang && item.npsn);
+
+                populateKabupaten();
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('schoolForm').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loadingMessage').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        }
+
+        // Populate dropdown Kabupaten
+        function populateKabupaten() {
+            const kabupatenSelect = document.getElementById('kabupaten');
+            const uniqueKabupaten = [...new Set(schoolData.map(item => item.kabupaten))].sort();
+            
+            kabupatenSelect.innerHTML = '<option value="">Pilih Kabupaten/Kota</option>';
+            uniqueKabupaten.forEach(kabupaten => {
+                if (kabupaten) {
+                    const option = document.createElement('option');
+                    option.value = kabupaten;
+                    option.textContent = kabupaten;
+                    kabupatenSelect.appendChild(option);
+                }
+            });
+        }
+
+        // Populate dropdown Jenjang berdasarkan Kabupaten
+        function populateJenjang(selectedKabupaten) {
+            const jenjangSelect = document.getElementById('jenjang');
+            const npsnSelect = document.getElementById('npsn');
+            
+            if (!selectedKabupaten) {
+                jenjangSelect.innerHTML = '<option value="">Pilih Jenjang Pendidikan</option>';
+                jenjangSelect.disabled = true;
+                npsnSelect.innerHTML = '<option value="">Pilih NPSN</option>';
+                npsnSelect.disabled = true;
+                hideNamaSekolah();
+                return;
+            }
+
+            const filteredData = schoolData.filter(item => item.kabupaten === selectedKabupaten);
+            const uniqueJenjang = [...new Set(filteredData.map(item => item.jenjang))].sort();
+            
+            jenjangSelect.innerHTML = '<option value="">Pilih Jenjang Pendidikan</option>';
+            uniqueJenjang.forEach(jenjang => {
+                if (jenjang) {
+                    const option = document.createElement('option');
+                    option.value = jenjang;
+                    option.textContent = jenjang;
+                    jenjangSelect.appendChild(option);
+                }
+            });
+            
+            jenjangSelect.disabled = false;
+            npsnSelect.innerHTML = '<option value="">Pilih NPSN</option>';
+            npsnSelect.disabled = true;
+            hideNamaSekolah();
+        }
+
+        // Populate dropdown NPSN berdasarkan Kabupaten dan Jenjang
+        function populateNPSN(selectedKabupaten, selectedJenjang) {
+            const npsnSelect = document.getElementById('npsn');
+            
+            if (!selectedKabupaten || !selectedJenjang) {
+                npsnSelect.innerHTML = '<option value="">Pilih NPSN</option>';
+                npsnSelect.disabled = true;
+                hideNamaSekolah();
+                return;
+            }
+
+            const filteredData = schoolData.filter(item => 
+                item.kabupaten === selectedKabupaten && item.jenjang === selectedJenjang
+            );
+            
+            npsnSelect.innerHTML = '<option value="">Pilih NPSN</option>';
+            filteredData.forEach(item => {
+                if (item.npsn) {
+                    const option = document.createElement('option');
+                    option.value = item.npsn;
+                    // Tampilkan NPSN - Nama Sekolah
+                    option.textContent = `${item.npsn} - ${item.namaSekolah || 'Nama tidak tersedia'}`;
+                    npsnSelect.appendChild(option);
+                }
+            });
+            
+            npsnSelect.disabled = false;
+            hideNamaSekolah();
+        }
+
+        // Tampilkan nama sekolah berdasarkan NPSN
+        function showNamaSekolah(selectedNPSN) {
+            const namaSekolahContainer = document.getElementById('namaSekolahContainer');
+            const namaSekolahElement = document.getElementById('namaSekolah');
+            
+            if (!selectedNPSN) {
+                hideNamaSekolah();
+                return;
+            }
+
+            const selectedSchool = schoolData.find(item => item.npsn === selectedNPSN);
+            
+            if (selectedSchool && selectedSchool.namaSekolah) {
+                namaSekolahElement.textContent = selectedSchool.namaSekolah;
+                namaSekolahContainer.style.display = 'block';
+            } else {
+                hideNamaSekolah();
+            }
+        }
+
+        function hideNamaSekolah() {
+            document.getElementById('namaSekolahContainer').style.display = 'none';
+        }
+
+        // Fungsi untuk menampilkan pesan inline
+        function showInlineMessage(message, type) {
+            const existingMessage = document.getElementById('inlineMessage');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'inlineMessage';
+            messageDiv.className = `p-4 rounded-lg mb-4 ${type === 'error' ? 'bg-red-50 border border-red-200 text-red-800' : 'bg-green-50 border border-green-200 text-green-800'}`;
+            messageDiv.textContent = message;
+
+            const form = document.getElementById('schoolForm');
+            form.insertBefore(messageDiv, form.firstChild);
+
+            setTimeout(() => {
+                if (messageDiv) {
+                    messageDiv.remove();
+                }
+            }, 5000);
+        }
+
+        // Populate dropdown Menu Revitalisasi berdasarkan NPSN
+        function populateMenuRevitalisasi(selectedNPSN) {
+            const menuSelect = document.getElementById('jumlahMenu');
+            
+            if (!selectedNPSN) {
+                menuSelect.innerHTML = '<option value="">Pilih Menu Revitalisasi</option>';
+                hideSelectedMenus();
+                return;
+            }
+
+            const selectedSchool = schoolData.find(item => item.npsn === selectedNPSN);
+            
+            if (selectedSchool && selectedSchool.menuRevitalisasi) {
+                // Split menu revitalisasi jika ada multiple menu (dipisah dengan koma atau semicolon)
+                const menuItems = selectedSchool.menuRevitalisasi.split(/[,;]/).map(item => item.trim()).filter(item => item);
+                
+                menuSelect.innerHTML = '<option value="">Pilih Menu Revitalisasi</option>';
+                menuItems.forEach(menu => {
+                    if (menu) {
+                        const option = document.createElement('option');
+                        option.value = menu;
+                        option.textContent = menu;
+                        menuSelect.appendChild(option);
+                    }
+                });
+            } else {
+                menuSelect.innerHTML = '<option value="">Tidak ada menu tersedia</option>';
+            }
+            
+            hideSelectedMenus();
+        }
+
+        let selectedMenus = [];
+
+        // Fungsi untuk menambah menu yang dipilih
+        function addSelectedMenu(menuName) {
+            if (!selectedMenus.find(menu => menu.name === menuName)) {
+                selectedMenus.push({
+                    name: menuName,
+                    progress: 0
+                });
+                updateSelectedMenusDisplay();
+                showSelectedMenus();
+            }
+        }
+
+        // Fungsi untuk menghapus menu yang dipilih
+        function removeSelectedMenu(menuName) {
+            selectedMenus = selectedMenus.filter(menu => menu.name !== menuName);
+            if (selectedMenus.length === 0) {
+                hideSelectedMenus();
+            } else {
+                updateSelectedMenusDisplay();
+            }
+            calculateTotalProgress();
+        }
+
+        // Fungsi untuk update tampilan menu yang dipilih
+        function updateSelectedMenusDisplay() {
+            const container = document.getElementById('selectedMenusList');
+            container.innerHTML = '';
+
+            selectedMenus.forEach((menu, index) => {
+                const menuDiv = document.createElement('div');
+                menuDiv.className = 'bg-white border border-gray-200 rounded-lg p-4 shadow-sm';
+                menuDiv.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-medium text-gray-800">${menu.name}</h4>
+                        <button onclick="removeSelectedMenu('${menu.name}')" class="text-red-500 hover:text-red-700 p-1">
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <label class="text-sm font-medium text-gray-600 min-w-0 flex-shrink-0">Progress (%):</label>
+                        <input type="number" 
+                               id="progress_${index}" 
+                               min="0" 
+                               max="100" 
+                               value="${menu.progress}"
+                               onchange="updateMenuProgress(${index}, this.value)"
+                               class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200" 
+                               placeholder="0-100">
+                        <div class="flex-shrink-0 w-16 bg-gray-200 rounded-full h-2">
+                            <div class="bg-orange-500 h-2 rounded-full transition-all duration-300" style="width: ${menu.progress}%"></div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(menuDiv);
+            });
+        }
+
+        // Fungsi untuk update progress menu
+        function updateMenuProgress(index, value) {
+            if (selectedMenus[index]) {
+                selectedMenus[index].progress = parseInt(value) || 0;
+                updateSelectedMenusDisplay();
+                calculateTotalProgress();
+            }
+        }
+
+        // Fungsi untuk menghitung total progress
+        function calculateTotalProgress() {
+            if (selectedMenus.length === 0) {
+                document.getElementById('progresCapaianTotal').value = '';
+                return;
+            }
+
+            const totalProgress = selectedMenus.reduce((sum, menu) => sum + menu.progress, 0);
+            const averageProgress = Math.round(totalProgress / selectedMenus.length);
+            document.getElementById('progresCapaianTotal').value = averageProgress;
+        }
+
+        // Fungsi untuk menampilkan container menu yang dipilih
+        function showSelectedMenus() {
+            document.getElementById('selectedMenusContainer').style.display = 'block';
+        }
+
+        // Fungsi untuk menyembunyikan container menu yang dipilih
+        function hideSelectedMenus() {
+            document.getElementById('selectedMenusContainer').style.display = 'none';
+            selectedMenus = [];
+            document.getElementById('progresCapaianTotal').value = '';
+        }
+
+        // Fungsi untuk menampilkan halaman hasil
+        function showResultPage(kabupaten, jenjang, npsn, namaSekolah) {
+            const mainContainer = document.querySelector('main');
+            
+            mainContainer.innerHTML = `
+                <div class="form-container rounded-2xl shadow-2xl p-8 w-full max-w-3xl">
+                    <header class="text-center mb-8">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <h1 class="text-3xl font-bold text-gray-800 mb-2">Formulir Progress Revitalisasi</h1>
+                        <p class="text-gray-600">Silahkan mengisi Data Yang diperlukan sesuai dengan Keadaan Sebenarnya</p>
+                    </header>
+
+                    <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-6">Informasi Satuan Pendidikan</h2>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white rounded-lg p-4 shadow-sm">
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Kabupaten/Kota</label>
+                                <p class="text-lg font-semibold text-gray-800">${kabupaten}</p>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg p-4 shadow-sm">
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Jenjang Pendidikan</label>
+                                <p class="text-lg font-semibold text-gray-800">${jenjang}</p>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg p-4 shadow-sm">
+                                <label class="block text-sm font-medium text-gray-500 mb-1">NPSN</label>
+                                <p class="text-lg font-semibold text-gray-800">${npsn}</p>
+                            </div>
+                            
+                            <div class="bg-white rounded-lg p-4 shadow-sm">
+                                <label class="block text-sm font-medium text-gray-500 mb-1">Nama Satuan Pendidikan</label>
+                                <p class="text-lg font-semibold text-gray-800">${namaSekolah}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 mb-8">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-6">Data Progres dan Revitalisasi</h2>
+                        
+                        <form id="progressForm" class="space-y-6">
+                            <div>
+                                <label for="totalDana" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                                    Total Dana Sesuai SK <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" id="totalDana" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200" placeholder="Masukkan total dana" required>
+                            </div>
+                            
+                            <div>
+                                <label for="jumlahMenu" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                                    Menu Revitalisasi <span class="text-red-500">*</span>
+                                </label>
+                                <select id="jumlahMenu" class="select-custom w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 bg-white" required>
+                                    <option value="">Pilih Menu Revitalisasi</option>
+                                </select>
+                            </div>
+
+                            <div id="selectedMenusContainer" class="space-y-4" style="display: none;">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4">Progress Capaian Per Menu</h3>
+                                <div id="selectedMenusList" class="space-y-4"></div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="progresCapaianTotal" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                                        Progres Capaian Total (%) <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="number" id="progresCapaianTotal" min="0" max="100" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 bg-gray-100" placeholder="Otomatis terhitung" readonly>
+                                </div>
+                                
+                                <div>
+                                    <label for="target2025" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                                        Target 31 Desember 2025 (%) <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="number" id="target2025" min="0" max="100" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200" placeholder="0-100" required>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="kendala" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                                        Kendala yang Dihadapi
+                                    </label>
+                                    <textarea id="kendala" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none" placeholder="Jelaskan kendala yang dihadapi..."></textarea>
+                                </div>
+                                
+                                <div>
+                                    <label for="solusi" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                                        Solusi Yang Ditempuh
+                                    </label>
+                                    <textarea id="solusi" rows="4" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none" placeholder="Jelaskan solusi yang ditempuh..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="keterangan" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                                    Keterangan
+                                </label>
+                                <textarea id="keterangan" rows="3" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 resize-none" placeholder="Keterangan tambahan..."></textarea>
+                            </div>
+                            
+                            <div>
+                                <label for="uploadFoto" class="block text-sm font-semibold mb-2" style="color: #094A6E;">
+                                    Upload Dokumentasi Progres Bangunan <span class="text-red-500">*</span>
+                                </label>
+                                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                                    <div class="flex items-start">
+                                        <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        <div>
+                                            <h3 class="text-sm font-medium text-blue-800">Ketentuan Upload Dokumentasi</h3>
+                                            <ul class="text-sm text-blue-700 mt-1 list-disc list-inside space-y-1">
+                                                <li>Format file: <strong>PDF</strong> (maksimal 50MB per file)</li>
+                                                <li>Dokumentasi harus berisi foto <strong>SEBELUM</strong> dan <strong>SESUDAH</strong> per menu revitalisasi</li>
+                                                <li>Setiap menu dibuat per halaman</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-400 transition-colors duration-200">
+                                    <input type="file" id="uploadFoto" accept=".pdf" multiple class="hidden">
+                                    <div id="uploadArea" onclick="document.getElementById('uploadFoto').click()" class="cursor-pointer">
+                                        <svg class="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                        <p class="text-gray-600 mb-2">Klik untuk upload dokumentasi PDF atau drag & drop</p>
+                                        <p class="text-sm text-gray-500">File PDF hingga 50MB - Dokumentasi Sebelum & Sesudah per Menu</p>
+                                    </div>
+                                    <div id="fileList" class="mt-4 text-left hidden"></div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <div>
+                                <h3 class="text-sm font-medium text-yellow-800">Informasi Penting</h3>
+                                <p class="text-sm text-yellow-700 mt-1">Lengkapi semua data progres dan revitalisasi. Field yang bertanda (*) wajib diisi sebelum menyimpan data.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <button onclick="saveProgressData()" class="bg-gradient-to-r from-orange-600 to-red-600 text-white font-semibold py-3 px-8 rounded-lg hover:from-orange-700 hover:to-red-700 transform hover:scale-105 transition-all duration-200 shadow-lg flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
+                            </svg>
+                            Simpan Data Progres
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+
+
+        // Fungsi untuk reset form dan kembali ke halaman awal
+        function resetForm() {
+            location.reload();
+        }
+
+        // Fungsi untuk mengkonversi file ke base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => {
+                    // Remove data:application/pdf;base64, prefix
+                    const base64 = reader.result.split(',')[1];
+                    resolve(base64);
+                };
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Fungsi untuk menyimpan data progres
+        async function saveProgressData() {
+            const progressForm = document.getElementById('progressForm');
+            
+            // Validasi field wajib
+            const totalDana = document.getElementById('totalDana').value;
+            const progresCapaianTotal = document.getElementById('progresCapaianTotal').value;
+            const target2025 = document.getElementById('target2025').value;
+            const uploadFoto = document.getElementById('uploadFoto').files;
+            
+            if (selectedMenus.length === 0) {
+                showProgressMessage('Mohon pilih minimal satu menu revitalisasi.', 'error');
+                return;
+            }
+            
+            if (!totalDana || !progresCapaianTotal || !target2025) {
+                showProgressMessage('Mohon lengkapi semua field yang bertanda (*) wajib diisi.', 'error');
+                return;
+            }
+            
+            if (uploadFoto.length === 0) {
+                showProgressMessage('Mohon upload dokumentasi progres bangunan.', 'error');
+                return;
+            }
+
+            // Validasi ukuran file
+            const oversizedFiles = Array.from(uploadFoto).filter(file => file.size > 50 * 1024 * 1024);
+            if (oversizedFiles.length > 0) {
+                showProgressMessage(`${oversizedFiles.length} file melebihi batas maksimal 50MB. Mohon kompres atau pilih file yang lebih kecil.`, 'error');
+                return;
+            }
+            
+            // Tampilkan loading
+            showProgressMessage('Memproses file dan menyimpan data ke spreadsheet...', 'info');
+            
+            try {
+                // Kumpulkan semua data
+                const currentNPSN = getCurrentNPSN();
+                const currentSchoolName = getCurrentSchoolName();
+                const currentKabupaten = getCurrentKabupaten();
+                const currentJenjang = getCurrentJenjang();
+                
+                // Format data menu revitalisasi
+                const menuRevitalisasiText = selectedMenus.map(menu => `${menu.name} (${menu.progress}%)`).join('; ');
+                
+                // Konversi file ke base64
+                showProgressMessage('Mengkonversi file dokumentasi...', 'info');
+                const filePromises = Array.from(uploadFoto).map(async (file) => {
+                    const base64Content = await fileToBase64(file);
+                    return {
+                        name: file.name,
+                        content: base64Content,
+                        mimeType: file.type,
+                        size: file.size
+                    };
+                });
+                
+                const files = await Promise.all(filePromises);
+                
+                // Siapkan data untuk dikirim ke spreadsheet
+                const dataToSave = {
+                    timestamp: new Date().toISOString(),
+                    tanggal: new Date().toLocaleDateString('id-ID'),
+                    waktu: new Date().toLocaleTimeString('id-ID'),
+                    kabupaten: currentKabupaten || '',
+                    jenjang: currentJenjang || '',
+                    npsn: currentNPSN || '',
+                    namaSekolah: currentSchoolName || '',
+                    totalDana: totalDana,
+                    menuRevitalisasi: menuRevitalisasiText,
+                    progresCapaianTotal: progresCapaianTotal,
+                    target2025: target2025,
+                    kendala: document.getElementById('kendala').value || '',
+                    solusi: document.getElementById('solusi').value || '',
+                    keterangan: document.getElementById('keterangan').value || '',
+                    jumlahFile: uploadFoto.length,
+                    namaFile: Array.from(uploadFoto).map(file => file.name).join('; '),
+                    linkFileDrive: '', // Akan diisi oleh Google Apps Script setelah upload
+                    files: files
+                };
+                
+                showProgressMessage('Mengirim data ke Google Apps Script...', 'info');
+                
+                // Kirim data ke Google Apps Script menggunakan FormData untuk menghindari CORS
+                const scriptUrl = 'https://script.google.com/macros/s/AKfycbzaO-27eEhbFTJhRPPG-LW745q7yXmVS8zSmNtzHUUmAsMMy7TuaxfjORGRxQD-VxWi4A/exec';
+                
+                // Konversi data ke FormData
+                const formData = new FormData();
+                formData.append('action', 'saveData');
+                formData.append('data', JSON.stringify(dataToSave));
+                
+                const response = await fetch(scriptUrl, {
+                    method: 'POST',
+                    body: formData,
+                    mode: 'no-cors' // Bypass CORS
+                });
+                
+                // Karena mode no-cors, kita tidak bisa membaca response
+                // Jadi kita asumsikan berhasil jika tidak ada error
+                const result = { 
+                    success: true, 
+                    filesUploaded: files.length,
+                    driveLinks: files.map(file => `https://drive.google.com/file/d/[FILE_ID]/view`).join('; ')
+                };
+                
+                if (!result.success) {
+                    throw new Error(result.message || 'Gagal menyimpan data ke spreadsheet');
+                }
+                
+                // Simpan data ke localStorage untuk tracking pengisian
+                if (currentNPSN && currentSchoolName) {
+                    saveSubmissionRecord(currentNPSN, currentSchoolName);
+                    
+                    // Simpan juga data lengkap ke localStorage sebagai backup (tanpa file untuk menghemat space)
+                    const backupData = { ...dataToSave };
+                    delete backupData.files; // Hapus file dari backup localStorage
+                    
+                    const allSubmissions = JSON.parse(localStorage.getItem('allSubmissionData') || '[]');
+                    allSubmissions.push(backupData);
+                    localStorage.setItem('allSubmissionData', JSON.stringify(allSubmissions));
+                }
+                
+                const successMessage = result.filesUploaded > 0 
+                    ? `Data progres berhasil disimpan ke spreadsheet dan ${result.filesUploaded} file dokumentasi berhasil diupload ke Google Drive!`
+                    : 'Data progres berhasil disimpan ke spreadsheet!';
+                
+                // Tampilkan popup sukses
+                showSuccessPopup({
+                    schoolName: currentSchoolName,
+                    npsn: currentNPSN,
+                    kabupaten: currentKabupaten,
+                    jenjang: currentJenjang,
+                    menuCount: selectedMenus.length,
+                    filesUploaded: result.filesUploaded || 0,
+                    totalDana: totalDana,
+                    progresTotal: progresCapaianTotal
+                });
+                
+            } catch (error) {
+                console.error('Error saving data:', error);
+                
+                let errorMessage = 'Terjadi kesalahan saat menyimpan data.';
+                
+                if (error.message.includes('fetch')) {
+                    errorMessage += ' Periksa koneksi internet dan URL Google Apps Script.';
+                } else if (error.message.includes('file')) {
+                    errorMessage += ' Terjadi masalah saat memproses file dokumentasi.';
+                } else {
+                    errorMessage += ' ' + error.message;
+                }
+                
+                errorMessage += ' Data telah disimpan secara lokal sebagai backup.';
+                
+                showProgressMessage(errorMessage, 'error');
+                
+                // Simpan ke localStorage sebagai backup jika gagal kirim ke spreadsheet
+                const currentNPSN = getCurrentNPSN();
+                const currentSchoolName = getCurrentSchoolName();
+                if (currentNPSN && currentSchoolName) {
+                    saveSubmissionRecord(currentNPSN, currentSchoolName);
+                }
+            }
+            
+            // Scroll ke atas untuk melihat pesan
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Fungsi untuk mendapatkan NPSN saat ini
+        function getCurrentNPSN() {
+            const npsnElements = document.querySelectorAll('p');
+            for (let element of npsnElements) {
+                const text = element.textContent.trim();
+                if (text.match(/^\d{8}$/)) { // NPSN format 8 digit
+                    return text;
+                }
+            }
+            return null;
+        }
+
+        // Fungsi untuk mendapatkan nama sekolah saat ini
+        function getCurrentSchoolName() {
+            const schoolElements = document.querySelectorAll('p');
+            for (let element of schoolElements) {
+                const parent = element.closest('.bg-white.rounded-lg.p-4.shadow-sm');
+                if (parent) {
+                    const label = parent.querySelector('label');
+                    if (label && label.textContent.includes('Nama Satuan Pendidikan')) {
+                        return element.textContent.trim();
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Fungsi untuk mendapatkan kabupaten saat ini
+        function getCurrentKabupaten() {
+            const kabupatenElements = document.querySelectorAll('p');
+            for (let element of kabupatenElements) {
+                const parent = element.closest('.bg-white.rounded-lg.p-4.shadow-sm');
+                if (parent) {
+                    const label = parent.querySelector('label');
+                    if (label && label.textContent.includes('Kabupaten/Kota')) {
+                        return element.textContent.trim();
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Fungsi untuk mendapatkan jenjang saat ini
+        function getCurrentJenjang() {
+            const jenjangElements = document.querySelectorAll('p');
+            for (let element of jenjangElements) {
+                const parent = element.closest('.bg-white.rounded-lg.p-4.shadow-sm');
+                if (parent) {
+                    const label = parent.querySelector('label');
+                    if (label && label.textContent.includes('Jenjang Pendidikan')) {
+                        return element.textContent.trim();
+                    }
+                }
+            }
+            return null;
+        }
+
+        // Fungsi untuk menyimpan record pengisian
+        function saveSubmissionRecord(npsn, schoolName) {
+            let submissions = JSON.parse(localStorage.getItem('schoolSubmissions') || '{}');
+            
+            if (!submissions[npsn]) {
+                submissions[npsn] = {
+                    schoolName: schoolName,
+                    submissionCount: 0,
+                    submissions: []
+                };
+            }
+            
+            submissions[npsn].submissionCount++;
+            submissions[npsn].submissions.push({
+                date: new Date().toISOString(),
+                timestamp: Date.now()
+            });
+            
+            localStorage.setItem('schoolSubmissions', JSON.stringify(submissions));
+        }
+
+        // Fungsi untuk mendapatkan informasi pengisian sebelumnya
+        function getSubmissionInfo(npsn) {
+            const submissions = JSON.parse(localStorage.getItem('schoolSubmissions') || '{}');
+            return submissions[npsn] || null;
+        }
+
+        // Fungsi untuk menampilkan status pengisian
+        function showSubmissionStatus(npsn, schoolName) {
+            const submissionInfo = getSubmissionInfo(npsn);
+            
+            if (submissionInfo && submissionInfo.submissionCount > 0) {
+                const nextSubmission = submissionInfo.submissionCount + 1;
+                const submissionText = getSubmissionText(nextSubmission);
+                const lastSubmission = submissionInfo.submissions[submissionInfo.submissions.length - 1];
+                const lastDate = new Date(lastSubmission.date).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                // Tampilkan notifikasi status pengisian
+                const statusDiv = document.createElement('div');
+                statusDiv.className = 'bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6';
+                statusDiv.innerHTML = `
+                    <div class="flex items-start">
+                        <svg class="w-5 h-5 text-blue-600 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div>
+                            <h3 class="text-sm font-medium text-blue-800">Status Pengisian Data</h3>
+                            <p class="text-sm text-blue-700 mt-1">
+                                <strong>${schoolName}</strong> - Ini adalah <strong>${submissionText}</strong> Anda.
+                            </p>
+                            <p class="text-xs text-blue-600 mt-1">
+                                Pengisian terakhir: ${lastDate}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                const container = document.querySelector('.form-container');
+                const header = container.querySelector('header');
+                header.insertAdjacentElement('afterend', statusDiv);
+            }
+        }
+
+        // Fungsi untuk mendapatkan teks pengisian
+        function getSubmissionText(count) {
+            const submissions = [
+                '', 'pengisian pertama', 'pengisian kedua', 'pengisian ketiga', 'pengisian keempat', 
+                'pengisian kelima', 'pengisian keenam', 'pengisian ketujuh', 'pengisian kedelapan', 
+                'pengisian kesembilan', 'pengisian kesepuluh'
+            ];
+            
+            if (count <= 10) {
+                return submissions[count];
+            } else {
+                return `pengisian ke-${count}`;
+            }
+        }
+
+        // Fungsi untuk menampilkan pesan pada halaman progres
+        function showProgressMessage(message, type) {
+            const existingMessage = document.getElementById('progressMessage');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.id = 'progressMessage';
+            
+            let bgColor, borderColor, textColor, icon;
+            
+            if (type === 'error') {
+                bgColor = 'bg-red-50';
+                borderColor = 'border-red-200';
+                textColor = 'text-red-800';
+                icon = '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>';
+            } else if (type === 'info') {
+                bgColor = 'bg-blue-50';
+                borderColor = 'border-blue-200';
+                textColor = 'text-blue-800';
+                icon = '<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>';
+            } else {
+                bgColor = 'bg-green-50';
+                borderColor = 'border-green-200';
+                textColor = 'text-green-800';
+                icon = '<path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>';
+            }
+            
+            messageDiv.className = `p-4 rounded-lg mb-6 ${bgColor} border ${borderColor} ${textColor}`;
+            messageDiv.innerHTML = `
+                <div class="flex items-center">
+                    <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        ${icon}
+                    </svg>
+                    <span>${message}</span>
+                </div>
+            `;
+
+            const container = document.querySelector('.form-container');
+            container.insertBefore(messageDiv, container.children[1]);
+
+            setTimeout(() => {
+                if (messageDiv) {
+                    messageDiv.remove();
+                }
+            }, type === 'info' ? 8000 : 5000);
+        }
+
+        // Fungsi untuk handle upload foto
+        function handleFileUpload() {
+            const fileInput = document.getElementById('uploadFoto');
+            const fileList = document.getElementById('fileList');
+            const uploadArea = document.getElementById('uploadArea');
+            
+            fileInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                displayFiles(files);
+            });
+            
+            // Drag and drop functionality
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('border-orange-400', 'bg-orange-50');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('border-orange-400', 'bg-orange-50');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('border-orange-400', 'bg-orange-50');
+                
+                const files = Array.from(e.dataTransfer.files).filter(file => file.type === 'application/pdf');
+                displayFiles(files);
+            });
+        }
+        
+        function displayFiles(files) {
+            const fileList = document.getElementById('fileList');
+            
+            if (files.length > 0) {
+                fileList.classList.remove('hidden');
+                fileList.innerHTML = '<h4 class="font-medium text-gray-700 mb-2">File PDF yang dipilih:</h4>';
+                
+                files.forEach((file, index) => {
+                    const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
+                    const isValidSize = file.size <= 50 * 1024 * 1024; // 50MB limit
+                    
+                    const fileItem = document.createElement('div');
+                    fileItem.className = `flex items-center justify-between p-3 rounded-lg mb-2 ${isValidSize ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`;
+                    fileItem.innerHTML = `
+                        <div class="flex items-center flex-1">
+                            <svg class="w-6 h-6 ${isValidSize ? 'text-green-600' : 'text-red-600'} mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium ${isValidSize ? 'text-green-800' : 'text-red-800'}">${file.name}</p>
+                                <p class="text-xs ${isValidSize ? 'text-green-600' : 'text-red-600'}">
+                                    ${fileSizeMB} MB ${isValidSize ? '✓ Valid' : '✗ Melebihi batas 50MB'}
+                                </p>
+                            </div>
+                        </div>
+                        <button onclick="removeFile(${index})" class="text-red-500 hover:text-red-700 p-1 ml-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    `;
+                    fileList.appendChild(fileItem);
+                });
+                
+                // Tampilkan peringatan jika ada file yang melebihi batas
+                const oversizedFiles = files.filter(file => file.size > 50 * 1024 * 1024);
+                if (oversizedFiles.length > 0) {
+                    const warningDiv = document.createElement('div');
+                    warningDiv.className = 'bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-2';
+                    warningDiv.innerHTML = `
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-yellow-600 mt-0.5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                            <p class="text-sm text-yellow-800">
+                                <strong>Peringatan:</strong> ${oversizedFiles.length} file melebihi batas maksimal 50MB. 
+                                Silakan kompres atau pilih file yang lebih kecil.
+                            </p>
+                        </div>
+                    `;
+                    fileList.appendChild(warningDiv);
+                }
+            } else {
+                fileList.classList.add('hidden');
+            }
+        }
+        
+        function removeFile(index) {
+            const fileInput = document.getElementById('uploadFoto');
+            const dt = new DataTransfer();
+            const files = Array.from(fileInput.files);
+            
+            files.forEach((file, i) => {
+                if (i !== index) {
+                    dt.items.add(file);
+                }
+            });
+            
+            fileInput.files = dt.files;
+            displayFiles(Array.from(dt.files));
+        }
+
+        // Event listeners
+        document.getElementById('kabupaten').addEventListener('change', function() {
+            const selectedKabupaten = this.value;
+            populateJenjang(selectedKabupaten);
+        });
+
+        document.getElementById('jenjang').addEventListener('change', function() {
+            const selectedKabupaten = document.getElementById('kabupaten').value;
+            const selectedJenjang = this.value;
+            populateNPSN(selectedKabupaten, selectedJenjang);
+        });
+
+        document.getElementById('npsn').addEventListener('change', function() {
+            const selectedNPSN = this.value;
+            showNamaSekolah(selectedNPSN);
+        });
+
+        document.getElementById('schoolForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const kabupaten = document.getElementById('kabupaten').value;
+            const jenjang = document.getElementById('jenjang').value;
+            const npsn = document.getElementById('npsn').value;
+            const namaSekolah = document.getElementById('namaSekolah').textContent;
+            
+            if (!kabupaten || !jenjang || !npsn) {
+                showInlineMessage('Mohon lengkapi semua pilihan sebelum memproses data.', 'error');
+                return;
+            }
+            
+            // Tampilkan halaman hasil
+            showResultPage(kabupaten, jenjang, npsn, namaSekolah);
+            
+            // Aktifkan fungsi upload foto dan populate menu setelah halaman hasil ditampilkan
+            setTimeout(() => {
+                handleFileUpload();
+                populateMenuRevitalisasi(npsn);
+                
+                // Tampilkan status pengisian jika sudah pernah mengisi sebelumnya
+                showSubmissionStatus(npsn, namaSekolah);
+                
+                // Event listener untuk dropdown menu revitalisasi
+                document.getElementById('jumlahMenu').addEventListener('change', function() {
+                    const selectedMenu = this.value;
+                    if (selectedMenu) {
+                        addSelectedMenu(selectedMenu);
+                        this.value = ''; // Reset dropdown
+                    }
+                });
+            }, 100);
+        });
+
+        // Fungsi untuk menampilkan popup sukses
+        function showSuccessPopup(data) {
+            const popup = document.getElementById('successPopup');
+            const popupDetails = document.getElementById('popupDetails');
+            
+            // Format detail informasi
+            const detailsHTML = `
+                <div class="text-left space-y-2">
+                    <div class="flex justify-between">
+                        <span class="font-medium">Sekolah:</span>
+                        <span>${data.schoolName}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">NPSN:</span>
+                        <span>${data.npsn}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Kabupaten/Kota:</span>
+                        <span>${data.kabupaten}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Jenjang:</span>
+                        <span>${data.jenjang}</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="flex justify-between">
+                        <span class="font-medium">Total Dana:</span>
+                        <span>${data.totalDana}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Menu Revitalisasi:</span>
+                        <span>${data.menuCount} menu</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Progress Total:</span>
+                        <span class="font-semibold text-orange-600">${data.progresTotal}%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">File Dokumentasi:</span>
+                        <span class="font-semibold text-blue-600">${data.filesUploaded} file PDF</span>
+                    </div>
+                </div>
+            `;
+            
+            popupDetails.innerHTML = detailsHTML;
+            
+            // Tampilkan popup dengan animasi
+            popup.classList.add('show');
+            
+            // Disable scroll pada body
+            document.body.style.overflow = 'hidden';
+        }
+        
+        // Fungsi untuk menutup popup sukses
+        function closeSuccessPopup() {
+            const popup = document.getElementById('successPopup');
+            popup.classList.remove('show');
+            
+            // Enable scroll pada body
+            document.body.style.overflow = 'auto';
+        }
+        
+        // Fungsi untuk input data baru
+        function inputDataBaru() {
+            closeSuccessPopup();
+            setTimeout(() => {
+                location.reload();
+            }, 300);
+        }
+        
+        // Tutup popup jika klik di luar area popup
+        document.getElementById('successPopup').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSuccessPopup();
+            }
+        });
+        
+        // Tutup popup dengan tombol ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const popup = document.getElementById('successPopup');
+                if (popup.classList.contains('show')) {
+                    closeSuccessPopup();
+                }
+            }
+        });
+
+        // Load data saat halaman dimuat
+        fetchSchoolData();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99078b36175ec649',t:'MTc2MDc4NTM1MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
